@@ -91,12 +91,12 @@ router.post('/', async (req, res) => {
  * Endpoint para cambio de estado de una tarea
  * Utilizamos el verbo patch en lugar de put, porque solo estamos cambiando status
  */
-router.patch('/status/:tid/:new_status', async (req, res) => {
+router.patch('/status/:tid/:status', async (req, res) => {
     try {
-        if (req.params.tid && req.params.new_status) {
+        if (req.params.tid && req.params.status) {
             const process = await taskModel.findOneAndUpdate(
                 { _id: req.params.tid },
-                { status: req.params.new_status },
+                { status: req.params.status },
                 // Importante! runValidators true para que status respete solo las opciones
                 // del enum cargado en la definición del modelo
                 { new: true, runValidators: true }
@@ -105,6 +105,29 @@ router.patch('/status/:tid/:new_status', async (req, res) => {
             res.status(200).send({ status: 'OK', data: process })
         } else {
             res.status(400).send({ status: 'ERR', data: 'Se requiere id de tarea y nuevo estado' })
+        }
+    } catch (err) {
+        res.status(500).send({ status: 'ERR', data: err.message })
+    }
+})
+
+/**
+ * Endpoint para cambio de prioridad, similar al caso anterior
+ */
+router.patch('/priority/:tid/:priority', async (req, res) => {
+    try {
+        if (req.params.tid && req.params.priority) {
+            const process = await taskModel.findOneAndUpdate(
+                { _id: req.params.tid },
+                { priority: req.params.priority },
+                // Importante! runValidators true para que priority respete solo las opciones
+                // del enum cargado en la definición del modelo
+                { new: true, runValidators: true }
+            )
+
+            res.status(200).send({ status: 'OK', data: process })
+        } else {
+            res.status(400).send({ status: 'ERR', data: 'Se requiere id de tarea y nueva prioridad' })
         }
     } catch (err) {
         res.status(500).send({ status: 'ERR', data: err.message })

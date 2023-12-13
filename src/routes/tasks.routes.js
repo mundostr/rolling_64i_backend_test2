@@ -51,7 +51,7 @@ router.get('/range/:range', async (req, res) => {
                 break
 
             case 'month':
-                dateEnd.setDate(current.getDate() + (31 - current.getDay()))
+                dateEnd.setDate(current.getDate() + (30 - current.getDay()))
                 break
 
             default:
@@ -61,7 +61,7 @@ router.get('/range/:range', async (req, res) => {
         const tasks = await taskModel.aggregate([
             { $match: { target_date: { $gte: dateStart, $lte: dateEnd }}},
             { $sort: { target_date: 1 }},
-            { $group: { _id: null, count: { $sum: 1 }, items: { $push: '$$ROOT' }}}
+            // { $group: { _id: null, count: { $sum: 1 }, items: { $push: '$$ROOT' }}}
         ])
 
         res.status(200).send({ status: 'OK', data: tasks })
@@ -75,10 +75,14 @@ router.get('/range/:range', async (req, res) => {
  */
 router.post('/', async (req, res) => {
     try {
+        if (!req.body.hasOwnProperty('description') || !req.body.hasOwnProperty('target_date')) {
+            return res.status(400).send({ status: 'ERR', data: 'Se requiere description y target_date en el body' })
+        }
+
         const newTask = {
             description: req.body.description,
             target_date: req.body.target_date,
-            status: req.body.status
+            priority: req.body.priority
         }
     
         const process = await taskModel.create(newTask)
@@ -141,7 +145,7 @@ router.patch('/priority/:tid/:priority', async (req, res) => {
 router.delete('/:tid', async (req, res) => {
     try {
         const process = await taskModel.findOneAndDelete({ _id: req.params.tid })
-        res.status(200).send({ status: 'OK', data: process === null ? 'No se encontró el ID': 'ID Borrado' })
+        res.status(200).send({ status: 'OK', data: process === null ? 'No se encontró la tarea': 'Tarea borrada' })
     } catch (err) {
         res.status(500).send({ status: 'ERR', data: err.message })
     }

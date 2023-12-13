@@ -55,12 +55,13 @@ router.get('/range/:range', async (req, res) => {
                 break
 
             default:
-                res.status(400).send({ status: 'OK', data: 'El parámetro de rango no es válido. Solo se acepta day / week / month' })
+                return res.status(400).send({ status: 'OK', data: 'El parámetro de rango no es válido. Solo se acepta day / week / month' })
         }
         
         const tasks = await taskModel.aggregate([
             { $match: { target_date: { $gte: dateStart, $lte: dateEnd }}},
-            { $sort: { target_date: 1 }}
+            { $sort: { target_date: 1 }},
+            { $group: { _id: null, count: { $sum: 1 }, items: { $push: '$$ROOT' }}}
         ])
 
         res.status(200).send({ status: 'OK', data: tasks })
